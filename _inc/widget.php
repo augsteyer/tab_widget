@@ -36,7 +36,7 @@
 	$disabled_tabs = 0;
 	$this->time = date( 'Y-m-d H:i:s', strtotime( "-{$lastdays} days", current_time( 'timestamp' ) ) );
 	
-	foreach( array( 'nocomments', 'nocommented', 'noviewed', 'norecent', 'notags' ) as $disabled )
+	foreach( array( 'nocomments', 'nocommented', 'noviewed', 'norecent', 'notags', 'noadvanced' ) as $disabled )
 		if( empty( $this->instance[$disabled] ) ) $disabled_tabs ++;
 	
 	//start widget
@@ -58,7 +58,7 @@
 		$this->current_tab = $tab = sanitize_title( $tab );
 		
 		if( ${"no{$tab}"} != 'on' ){
-			if(  $tab != 'tags' ) $output .= '<ul id="pop-widget-' . $tab . '-' . $this->number . '">';
+			if(  $tab != 'tags' && $tab != 'advanced' ) $output .= '<ul id="pop-widget-' . $tab . '-' . $this->number . '">';
 			
 			switch( $tab ){
 				case 'recent':
@@ -72,6 +72,9 @@
 					break;
 				case 'viewed':
 					$output .= $this->get_most_viewed(  );
+					break;
+				case 'advanced':
+					$output .= $this->get_advanced_posts( );
 					break;
 				case 'tags':
 					$output .= $this->get_tags(  );

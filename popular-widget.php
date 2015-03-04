@@ -63,7 +63,7 @@
 			define( 'POPWIDGET_URL', plugins_url( POPWIDGET_FOLDER ) . "/" );
 			
 			$this->defaults = apply_filters( 'pop_defaults_settings', array(
-				'nocomments' => false, 'nocommented' => false, 'noviewed' => false, 'norecent' => false, 
+				'nocomments' => false, 'nocommented' => false, 'noviewed' => false, 'norecent' => false, 'noadvanced' => false,
 				'userids' => false, 'imgsize' => 'thumbnail', 'counter' => false, 'excerptlength' => 15, 'tlength' => 20,
 				'meta_key' => '_popular_views', 'calculate' => 'visits', 'title' => '', 'limit'=> 5, 'cats'=>'', 'lastdays' => 90,
 				'taxonomy' => 'post_tag', 'exclude_users' => false, 'posttypes' => array( 'post' => 'on' ), 'thumb' => false,
@@ -75,7 +75,8 @@
 				 'comments' => __( 'Recent Comments', 'pop-wid' ) , 
 				 'commented' => __( 'Most Commented', 'pop-wid' ), 
 				 'viewed' => __( 'Most Viewed', 'pop-wid' ), 
-				 'tags' => __( 'Tags', 'pop-wid' ) 
+				 'tags' => __( 'Tags', 'pop-wid' ),
+				 'advanced' => __('Advanced', 'pop-wid')
 			 ) );
 			 
 		}

@@ -52,8 +52,11 @@
 		function load_scripts_styles(){
 			
 			if( ! is_admin() || is_active_widget( false, false, $this->id_base, true ) ) {
+				wp_enqueue_style( 'popular-ui', POPWIDGET_URL . '_css/jquery-ui.css', NULL, $this->version );
 				wp_enqueue_style( 'popular-widget', POPWIDGET_URL . '_css/pop-widget.css', NULL, $this->version );
-				wp_enqueue_script( 'popular-widget', POPWIDGET_URL . '_js/pop-widget.js', array('jquery'), $this->version, true ); 
+				wp_enqueue_script( 'popular-ui', POPWIDGET_URL . '_js/jquery-ui.min.js', array('jquery'), $this->version, true );
+				wp_enqueue_script( 'popular-paging', POPWIDGET_URL . '_js/jquery.paging.min.js', array('jquery'), $this->version, true );
+				wp_enqueue_script( 'popular-widget', POPWIDGET_URL . '_js/pop-widget.js', array('jquery'), $this->version, true );
 			}
 			
 			if( ! is_singular() && ! apply_filters( 'pop_allow_page_view', false ) )
@@ -266,7 +269,81 @@
 				$this->display_post_tab_content( $posts ), $this->instance, $posts 
 			);
 		}
-		
+
+		/**
+		 *get Advanced Posts
+		 *
+		 *@return string
+		 *@since 1.0.1
+		 */
+		function get_advanced_posts( ){
+
+			$output = $content = '';
+			$innter_tabs = array('Today', 'Week', 'Month', 'All');
+
+			extract( $this->instance );
+			$output .= "<div id='tabs'><ul>";
+			foreach($innter_tabs as $inner_tab){
+				$tab_name = strtolower($inner_tab);
+				$posts = wp_cache_get( "pop_advanced_{$number}_{$tab_name}", 'pop_cache' );
+
+				if( $posts == false ) {
+					foreach( $posttypes as $post => $v )
+						if( $v == 'on' ) $post_types[] = $post;
+
+					$args = array( 'suppress_fun' => true, 'post_type' => $post_types, 'posts_per_page' => $limit );
+					$args = array_merge($args, $this->get_date_args($tab_name));
+
+					if( $cats && $exclude_cats == 'on' ) $args['category__not_in'] = explode( ',', $cats );
+					else if ( $cats ) $args['category__in'] = explode( ',', $cats );
+
+					if( $userids && $exclude_users == 'on' ) $args['author'] = trim( "-". $userids, ',' );
+					else if( $userids ) $args['author'] = trim( $userids, ',' );
+
+					$posts = get_posts( apply_filters( 'pop_get_recent_posts_args', $args) );
+					wp_cache_set( "pop_advanced_{$number}_{$tab_name}", $posts, 'pop_cache' );
+				}
+				$output .= "<li><a href='#{$tab_name}'>{$inner_tab}</a></li>";
+				$content .= "<ul id='{$tab_name}'>". apply_filters( 'pop_advanced_posts_content',
+					$this->display_post_tab_content( $posts ), $this->instance, $posts
+				) . "<li class='pagination' id='pagination-{$tab_name}'></li></ul>";
+
+				wp_reset_postdata(); //resets
+				unset($posts);
+			}
+			$output .= "</ul>". $content . "</div>";
+			return $output;
+		}
+
+		function get_date_args($param){
+			switch($param){
+				case 'today':
+					$today = getdate();
+					$list = array(
+						'year'  => $today['year'],
+						'month' => $today['mon'],
+						'day'   => $today['mday'],
+					);
+					break;
+				case 'week':
+					$list =	array(
+						'year' => date( 'Y' ),
+						'week' => date( 'W' ),
+					);
+					break;
+				case 'month':
+					$list =	array(
+						'year' => date( 'Y' ),
+						'month' => date( 'm' )
+					);
+					break;
+				default:
+					return array();
+			}
+			return array(
+				'date_query' => array(($list)));
+		}
+
 		/**
 		 *get the latest comments
 		 *
@@ -410,7 +487,7 @@
 			extract( $this->instance );
 			
 			foreach( $posts as $key => $post ){ 
-				$output .= '<li><a href="'. esc_url( get_permalink( $post->ID ) ) . '" title="' . esc_attr( $post->post_title ) . '" rel="' . esc_attr( $rel ) . '">';
+				$output .= '<li class="post"><a href="'. esc_url( get_permalink( $post->ID ) ) . '" title="' . esc_attr( $post->post_title ) . '" rel="' . esc_attr( $rel ) . '">';
 				
 				//image
 				if( !empty( $thumb ) )  $image = $this->get_post_image( $post->ID, $imgsize );
