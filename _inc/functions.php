@@ -278,70 +278,66 @@
 		 */
 		function get_advanced_posts( ){
 
-			$output = $content = '';
-			$innter_tabs = array('Today', 'Week', 'Month', 'All');
+			$output = $content = $where = '';
+			$post_types = array();
+			global $wpdb;
+			$innter_tabs = array('Today'=>'daily', 'Week'=>'weekly', 'Month'=>'monthly', 'All'=>'');
 
 			extract( $this->instance );
-			$output .= "<div id='tabs'><ul>";
-			foreach($innter_tabs as $inner_tab){
+			$output .= "<div id='tabs' class='pop-widget-content'><ul>";
+			foreach($innter_tabs as $inner_tab => $schedule){
 				$tab_name = strtolower($inner_tab);
-				$posts = wp_cache_get( "pop_advanced_{$number}_{$tab_name}", 'pop_cache' );
+				$posts = wp_cache_get( "pop_advanced_{$number}_{$tab_name}", 'pop_cache_adv' );
 
 				if( $posts == false ) {
 					foreach( $posttypes as $post => $v )
-						if( $v == 'on' ) $post_types[] = $post;
+						if( $v == 'on' && !in_array($post, $post_types)) $post_types[] = $post;
 
-					$args = array( 'suppress_fun' => true, 'post_type' => $post_types, 'posts_per_page' => $limit );
-					$args = array_merge($args, $this->get_date_args($tab_name));
+					$meta_key = 'post_views_count' . ($schedule ? '_'.$schedule : '');
 
-					if( $cats && $exclude_cats == 'on' ) $args['category__not_in'] = explode( ',', $cats );
-					else if ( $cats ) $args['category__in'] = explode( ',', $cats );
+					//taxonomy filter
+					if( !empty( $cats ) )
+						$where = " AND ( p.ID " . ( ( $exclude_cats == 'on' ) ? ' NOT IN ' : ' IN ' ) .
+						         "( SELECT object_id FROM $wpdb->term_relationships WHERE term_taxonomy_id IN ( " . esc_sql( trim( $cats, ',' ) ) . " ) ) ) ";
 
-					if( $userids && $exclude_users == 'on' ) $args['author'] = trim( "-". $userids, ',' );
-					else if( $userids ) $args['author'] = trim( $userids, ',' );
+					//user filter
+					if( !empty( $userids ) )
+						$where .=  " AND post_author ". ( ( $exclude_cats == 'on' ) ? ' NOT IN ' : ' IN ' ) . " ( ". esc_sql( trim( $userids, ',' ) ) ." )";
 
-					$posts = get_posts( apply_filters( 'pop_get_recent_posts_args', $args) );
-					wp_cache_set( "pop_advanced_{$number}_{$tab_name}", $posts, 'pop_cache' );
+					$where = apply_filters( 'pop_viewed_where', $where, $this->instance );
+					$posts = implode(',',$post_types);
+					$querystr = "
+						SELECT $wpdb->posts.*, $wpdb->postmeta.meta_value
+						FROM $wpdb->posts
+						INNER JOIN $wpdb->postmeta
+						ON ( $wpdb->posts.ID = $wpdb->postmeta.post_id )
+						AND $wpdb->posts.post_type IN ( '{$posts}' )
+						AND (wp_posts.post_status = 'publish')
+						AND ( $wpdb->postmeta.meta_key = '{$meta_key}' )
+						{$where}
+						ORDER BY $wpdb->postmeta.meta_value+0
+						DESC LIMIT {$limit}
+					";
+
+					$viewed = $wpdb->get_results($querystr, OBJECT);
+					wp_cache_set( "pop_advanced_{$number}_{$tab_name}", $viewed, 'pop_cache_adv' );
 				}
+
 				$output .= "<li><a href='#{$tab_name}'>{$inner_tab}</a></li>";
 				$content .= "<ul id='{$tab_name}'>". apply_filters( 'pop_advanced_posts_content',
-					$this->display_post_tab_content( $posts ), $this->instance, $posts
-				) . "<li class='pagination' id='pagination-{$tab_name}'></li></ul>";
+					$this->display_post_tab_content( $viewed ), $this->instance, $viewed
+				);
+
+				if($limit > 10){
+					$content .= "<li class='pagination' id='pagination-{$tab_name}'></li>";
+				}
+	            $content .= "</ul>";
 
 				wp_reset_postdata(); //resets
 				unset($posts);
 			}
 			$output .= "</ul>". $content . "</div>";
 			return $output;
-		}
-
-		function get_date_args($param){
-			switch($param){
-				case 'today':
-					$today = getdate();
-					$list = array(
-						'year'  => $today['year'],
-						'month' => $today['mon'],
-						'day'   => $today['mday'],
-					);
-					break;
-				case 'week':
-					$list =	array(
-						'year' => date( 'Y' ),
-						'week' => date( 'W' ),
-					);
-					break;
-				case 'month':
-					$list =	array(
-						'year' => date( 'Y' ),
-						'month' => date( 'm' )
-					);
-					break;
-				default:
-					return array();
-			}
-			return array(
-				'date_query' => array(($list)));
 		}
 
 		/**
@@ -445,13 +441,23 @@
 				if( !empty( $userids ) )
 				$where .=  " AND post_author ". ( ( $exclude_cats == 'on' ) ? ' NOT IN ' : ' IN ' ) . " ( ". esc_sql( trim( $userids, ',' ) ) ." )"; 
 				
-				$join = apply_filters( 'pop_viewed_join', $join, $this->instance );
 				$where = apply_filters( 'pop_viewed_where', $where, $this->instance );
-				
-				$viewed = $wpdb->get_results( $wpdb->prepare( "SELECT SQL_CALC_FOUND_ROWS p.*, meta_value as views FROM $wpdb->posts p " . 
-				"JOIN $wpdb->postmeta pm ON p.ID = pm.post_id AND meta_key = %s AND meta_value != '' " .
-				"WHERE 1=1 AND p.post_status = 'publish' AND post_date >= '{$this->time}' AND p.post_type IN ( $types ) $where " . 
-				"GROUP BY p.ID ORDER BY ( meta_value+0 ) DESC LIMIT $limit", $meta_key) );
+
+				$querystr = "
+				    SELECT $wpdb->posts.*, $wpdb->postmeta.meta_value
+				    FROM $wpdb->posts, $wpdb->postmeta
+				    WHERE $wpdb->posts.ID = $wpdb->postmeta.post_id
+				    AND $wpdb->postmeta.meta_key = '{$meta_key}'
+				    AND $wpdb->postmeta.meta_value != ''
+				    AND $wpdb->posts.post_status = 'publish'
+				    AND $wpdb->posts.post_type IN ( $types )
+				    AND $wpdb->posts.post_date >= '{$this->time}'
+				    {$where}
+				    ORDER BY $wpdb->postmeta.meta_value+0
+				    DESC LIMIT {$limit}
+				 ";
+
+				$viewed = $wpdb->get_results($querystr, OBJECT);
 				
 				wp_cache_set( "pop_viewed_{$number}", $viewed, 'pop_cache' );
 			}
@@ -487,7 +493,7 @@
 			extract( $this->instance );
 			
 			foreach( $posts as $key => $post ){ 
-				$output .= '<li class="post"><a href="'. esc_url( get_permalink( $post->ID ) ) . '" title="' . esc_attr( $post->post_title ) . '" rel="' . esc_attr( $rel ) . '">';
+				$output .= '<li class="post-item"><a href="'. esc_url( get_permalink( $post->ID ) ) . '" title="' . esc_attr( $post->post_title ) . '" rel="' . esc_attr( $rel ) . '">';
 				
 				//image
 				if( !empty( $thumb ) )  $image = $this->get_post_image( $post->ID, $imgsize );
@@ -499,8 +505,8 @@
 				);
 				
 				// counter
-				if( !empty( $counter ) && isset( $post->views ) )
-					$output .= '<span class="pop-count">( ' . preg_replace( "/(?<=\d)(?=(\d{3})+(?!\d))/", ",", $post->views ) . ' )</span>';
+				if( !empty( $counter ) && isset( $post->meta_value ) )
+					$output .= '<span class="pop-count">( ' . preg_replace( "/(?<=\d)(?=(\d{3})+(?!\d))/", ",", $post->meta_value ) . ' )</span>';
 				
 				// excerpt
 				if( !empty( $excerpt ) ){ 

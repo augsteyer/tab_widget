@@ -58,7 +58,7 @@
 		$this->current_tab = $tab = sanitize_title( $tab );
 		
 		if( ${"no{$tab}"} != 'on' ){
-			if(  $tab != 'tags' && $tab != 'advanced' ) $output .= '<ul id="pop-widget-' . $tab . '-' . $this->number . '">';
+			if(  $tab != 'tags' && $tab != 'advanced' ) $output .= '<ul id="pop-widget-' . $tab . '-' . $this->number . '" class="pop-widget-content">';
 			
 			switch( $tab ){
 				case 'recent':
@@ -83,7 +83,7 @@
 					$output .= apply_filters( "pop_{$tab}_tab_content" );
 			}
 			
-			if(  $tab != 'tags' )  $output .= '</ul>';
+			if(  $tab != 'tags' && $tab != 'advanced')  $output .= '</ul>';
 		}
 	}
 	$output .= '</div><!--.pop-inside-->';

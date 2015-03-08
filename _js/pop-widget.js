@@ -18,11 +18,12 @@
 jQuery(document).ready(function (e) {
     e.noConflict();
     try {
-        e("div.pop-inside ul").hide();
+        e('#tabs').tabs();
+        e("div.pop-inside > .pop-widget-content").add('.wp-tag-cloud').hide();
         e(".pop-widget-tabs").each(function () {
             tabid = e(this).attr("id").replace("pop-widget-tabs-", "");
-            e("#pop-widget-tabs-" + tabid + " a").eq(0).addClass("active");
-            e(".pop-inside-" + tabid + " ul").eq(0).show()
+            e("#pop-widget-tabs-" + tabid + " a").eq(0).addClass("active"); //first element active
+            e(".pop-inside-" + tabid + " .pop-widget-content").add('.wp-tag-cloud').eq(0).show();
         });
         e(".pop-widget-tabs a").click(function () {
             tab = e(this).attr("href").replace("#", "");
@@ -30,27 +31,24 @@ jQuery(document).ready(function (e) {
             e("#pop-widget-tabs-" + id + " a").removeClass("active");
             e(this).addClass("active");
             inx = e("#pop-widget-tabs-" + id + " a").index(e(this));
-            e(".pop-inside-" + id + " ul").hide();
-            e(".pop-inside-" + id + " ul").eq(inx).show();
+            e(".pop-inside-" + id + " .pop-widget-content").add('.wp-tag-cloud').hide();
+            e(".pop-inside-" + id + " .pop-widget-content").add('.wp-tag-cloud').eq(inx).show();
             return false
         })
     } catch (t) {
         return false
     }
 
-    /* jQ Tabs */
-    e('#tabs').tabs().hide();
-    e('a[href="#advanced"').click(function(){ e('#tabs').show(); e('#today').show()});
     /* jQ pagination */
     var holder = ['today', 'week', 'month', 'all'];
     e.each(holder, function(key, value){
         var prev = {start: 0, stop: 0},
-            cont = e('#' + value + ' .post');
+            cont = e('#' + value + ' .post-item');
 
         if(cont.length > 0){
             e("#pagination-"+value).paging(cont.length, {
                 format: '< ncnnn >',
-                perpage: 2,
+                perpage: 10,
                 lapping: 0,
                 page: 1,
                 onSelect: function (page) {

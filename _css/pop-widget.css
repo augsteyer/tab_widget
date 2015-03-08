@@ -9,19 +9,21 @@
  * @since 0.5.0
  */
 
-ul.pop-widget-tabs{ list-style: none; clear: both; width: 100%; border: none; margin: 0 !important; padding: 0 !important; }
+ul.pop-widget-tabs{ list-style: none; clear: both; width: 100%; border: none; margin: 0 !important; padding: 0 !important; background-color: #ECEBEB;
+    float: left; }
 
-ul.pop-widget-tabs li{ padding: 0; float: left; display: inline; line-height: 30px; border: 1px solid #f5f5f5; font-weight: bold; margin: 0 1px 1px 0; font-size: 11px; list-style: none; cursor: pointer; }
+ul.pop-widget-tabs li{ padding: 0; float: left; display: inline; line-height: 30px; font-weight: bold; margin: 0 2px 0 0; font-size: 11px; list-style: none; cursor: pointer; }
 
-ul.pop-widget-tabs li a{ float: left; display: block; padding: 0 5px; background: #fff; line-height: 30px; text-decoration: none; border: 1px solid #ddd; font-family: Arial, Helvetica, sans-serif; letter-spacing: -.05em; }
+ul.pop-widget-tabs li a{ color: #5A5A5A; float: left; display: block; padding: 0 5px; background: transparent; line-height: 30px; text-decoration: none; font-family: Arial, Helvetica, sans-serif; margin-top: -3px; }
 
-ul.pop-widget-tabs li a{ padding: 0 3px; font-size: 11px }
+ul.pop-widget-tabs li a{ padding: 0 6px; font-size: 11px }
 
 ul.pop-widget-tabs.pop-widget-tabs-3 li span, ul.pop-widget-tabs.pop-widget-tabs-4 li span, ul.pop-widget-tabs.pop-widget-tabs-5 li span{ display: none }
 
-ul.pop-widget-tabs li a:hover, ul.pop-widget-tabs li a.active, ul.pop-widget-tabs li a:active, ul.pop-widget-tabs li a:focus{ text-decoration: none; background: #f5f5f5 }
+ul.pop-widget-tabs li a:hover, ul.pop-widget-tabs li a.active, ul.pop-widget-tabs li a:active, ul.pop-widget-tabs li a:focus{ text-decoration: none; background: #4C5360; color: white; border-top-right-radius: 5px;
+    border-top-left-radius: 5px; }
 
-div.pop-inside{ clear: both; padding: 0; border: 1px solid #ddd; margin: 5px 0px 0px; }
+div.pop-inside{ clear: both; padding: 0; border: 1px solid #ddd; margin: 0; }
 
 div.pop-inside ul{ border: none; padding: 0; display: block; list-style: none; position: relative; margin: 0 !important; }
 
@@ -33,9 +35,11 @@ div.pop-inside ul li .pop-title{ clear: none; font-weight: bold; margin: 0 0 3px
 
 div.pop-inside ul li .pop-summary{ display: block; }
 
-div.pop-inside ul li a{ cursor: pointer; text-decoration: none; font-weight: normal }
+ul li.post-item a{ cursor: pointer; text-decoration: none; font-weight: normal; overflow: hidden; display: block; }
 
-div.pop-inside ul li a:hover, div.pop-inside ul li a:active, div.pop-inside ul li a:focus{ background: #f5f5f5;  text-decoration: none; }
+ul li.post-item a:hover,
+ul li.post-item a:active,
+ul li.post-item a:focus{ background: #f5f5f5;  text-decoration: none; }
 
 div.pop-inside ul li p{ margin: 0; padding: 0; }
 
@@ -61,12 +65,16 @@ div.pop-inside ul.wp-tag-cloud li{ padding: 0; width: auto; display: inline-bloc
 
 div.pop-inside ul.wp-tag-cloud a:hover, div.pop-inside ul.wp-tag-cloud a:focus, div.pop-inside ul.wp-tag-cloud a:active{ text-decoration: underline }
 
-ul li.post a { width: 100%; display: block; padding: 8px 5px; }
-.pop-inside ul.ui-tabs-nav { background-color: #4C5360;padding: 3px 4px; }
-.ui-tabs-anchor{ color: #fff; padding: 0 8px; }
+ul li.post-item a { width: 100%; display: block; padding: 8px 5px; box-sizing: border-box; }
+.pop-inside ul.ui-tabs-nav { background-color: #4C5360;padding: 3px 17%; }
+.ui-tabs-nav:before{ content: ">";  position: absolute; left: 10px; color: #D3D3D3;}
+#tabs a.ui-tabs-anchor{ color: #D3D3D3; padding: 0 6px; }
+    #tabs .ui-state-active a.ui-tabs-anchor,
+    #tabs .ui-state-hover a.ui-tabs-anchor,
+    #tabs .ui-state-focus a.ui-tabs-anchor{ color: #fff; }
 /*Quotes style*/
 .pagination { padding:3px; margin:3px; text-align:center; }
 .pagination a { padding: 2px 5px 2px 5px; margin-right: 2px; border: 1px solid #ddd; text-decoration: none; color: #525252; }
-.pagination a:hover, div.pagination a:active { padding: 2px 5px 2px 5px; margin-right: 2px; border: 1px solid #a0a0a0; }
+.pagination a:hover, div.pagination a:active { padding: 2px 5px 2px 5px; margin-right: 2px; border: 1px solid #a0a0a0; cursor: pointer; }
 .pagination span.current { padding: 2px 5px 2px 5px; margin-right: 2px; border: 1px solid #e0e0e0; font-weight: bold; background-color: #f0f0f0; color: #aaa; }
 .pagination span.disabled { padding: 2px 5px 2px 5px; margin-right: 2px; border: 1px solid #f3f3f3; color: #ccc; }
